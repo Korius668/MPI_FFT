@@ -1,0 +1,31 @@
+# Po³aczenie siê z maszyn¹ w sali i przygotowanie œrodowiska
+
+ssh <nazwa_komputera_w_sali>
+
+np.
+ssh stud204-09
+
+source /opt/nfs/config/source_mpich430.sh
+source /opt/nfs/config/source_cuda121.sh
+
+# Aby wygenerowaæ przyk³adowe dane wejœciowe,
+# u¿yj program sygnalGenerate.py. 
+# Jeœli zale¿y ci na innych sygna³ach, 
+# zmodyfikuj kod tego programu.
+
+# Obs³uga Makefile
+
+make compile
+
+make run 
+# Dla niestandardowegi inputu:
+
+make run INPUT=<nazwa_pliku>
+np.
+make run INPUT=sinus
+
+# Wykonaj aby wyczyœciæ miejsce robocze
+
+make clean
+
+make reset
