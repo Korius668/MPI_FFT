@@ -1,60 +1,55 @@
-# Połączenie się z maszyną w sali i przygotowanie środowiska
+# MPI_FFT
+Program do obliczania FFT w środowisku na środowisku rozproszonym z użyciem biblioteki OpenMPI.
+## Połączenie się z maszyną w sali i przygotowanie środowiska
 
 Aby połączyć się z maszyną w sali, użyj polecenia `ssh`:
-
 ```bash
 ssh <nazwa_komputera_w_sali>
+```
 Na przykład:
-
-Bash
-
+```bash
 ssh stud204-09
+```
 Następnie, aby przygotować środowisko, wykonaj następujące polecenia:
 
-Bash
-
+```bash
 source /opt/nfs/config/source_mpich430.sh
 source /opt/nfs/config/source_cuda121.sh
-Generowanie przykładowych danych wejściowych
+```
+# Generowanie przykładowych danych wejściowych
 Aby wygenerować przykładowe dane wejściowe, użyj programu sygnalGenerate.py.
 
-Bash
-
+```bash
 python sygnalGenerate.py
+```
 Jeśli zależy Ci na innych sygnałach, zmodyfikuj kod tego programu.
 
-Obsługa Makefile
+# Obsługa Makefile
 Kompilacja
 Aby skompilować projekt, użyj polecenia:
-
-Bash
-
+```bash
 make compile
+```
 Uruchomienie
 Aby uruchomić program z domyślnym inputem, użyj polecenia:
-
-Bash
-
+```bash
 make run
+```
 Dla niestandardowego inputu, użyj:
-
-Bash
-
+```bash
 make run INPUT=<nazwa_pliku>
+```
 Na przykład:
-
-Bash
-
-make run INPUT=sinus
+```bash
+make run INPUT=example_signals/sinus
+```
 Czyszczenie
 Aby wyczyścić miejsce robocze (usunąć skompilowane pliki), wykonaj:
-
-Bash
-
+```bash
 make clean
+```
 Resetowanie
 Aby przywrócić miejsce robocze do stanu początkowego (usunąć również wygenerowane dane), wykonaj:
-
-Bash
-
+```bash
 make reset
+```
