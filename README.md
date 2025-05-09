@@ -25,12 +25,12 @@ python sygnalGenerate.py
 Jeśli zależy Ci na innych sygnałach, zmodyfikuj kod tego programu.
 
 # Obsługa Makefile
-Kompilacja
+## Kompilacja
 Aby skompilować projekt, użyj polecenia:
 ```bash
 make compile
 ```
-Uruchomienie
+## Uruchomienie
 Aby uruchomić program z domyślnym inputem, użyj polecenia:
 ```bash
 make run
@@ -43,12 +43,20 @@ Na przykład:
 ```bash
 make run INPUT=example_signals/sinus
 ```
-Czyszczenie
+Dla niestandardowej liczby procesów, użyj:
+```bash
+make run NUM_PROCESSES=<liczba_procesów>
+```
+Na przykład:
+```
+make run NUM_PROCESSES=5
+```
+## Czyszczenie
 Aby wyczyścić miejsce robocze (usunąć skompilowane pliki), wykonaj:
 ```bash
 make clean
 ```
-Resetowanie
+## Resetowanie
 Aby przywrócić miejsce robocze do stanu początkowego (usunąć również wygenerowane dane), wykonaj:
 ```bash
 make reset
