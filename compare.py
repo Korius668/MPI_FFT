@@ -39,6 +39,7 @@ def main(file1, file2):
     time_axis = np.arange(n1) / sr1
 
     n2, sr2, fft_from_file = load_fft_data(file2)
+    fft_from_file[n//2 + 1:] = fft_from_file[n//2 + 1:][::-1]
     reconstructed_signal = np.fft.ifft(fft_from_file).real
     t2 = np.linspace(0, n2 / sr2, n2, endpoint=False)
     
@@ -53,26 +54,27 @@ def main(file1, file2):
     plt.subplot(2, 2, 2)
     magnitudes = np.abs(fft_bins)
     plt.bar(freqs1, magnitudes, width=freqs1[1] - freqs1[0])
-    plt.title("Oryginalne Spektrum FFT")
+    plt.title("Oryginalne Spektrum")
     plt.xlabel("Częstotliwość [Hz]")
     plt.ylabel("Amplituda")
     
     plt.subplot(2, 2, 3)
-    amplitudes2 = np.sqrt(fft_from_file.real**2 + fft_from_file.imag**2)[:n2//2 + 1] / (n2 / 2)
-    freqs2 = np.fft.rfftfreq(n2, d=1.0/sr2)
-    plt.bar(freqs2, amplitudes2, width=freqs2[1] - freqs2[0])
-    plt.title("Wyliczone Spektrum FFT")
-    plt.xlabel("Częstotliwość [Hz]")
-    plt.ylabel("Amplituda")
-    
-    plt.subplot(2, 2, 4)
     plt.plot(t2, reconstructed_signal)
     plt.title("Zrekonstruowany sygnał")
     plt.xlabel("Czas [s]")
     plt.ylabel("Wartość")
     
+    plt.subplot(2, 2, 4)
+    amplitudes2 = np.sqrt(fft_from_file.real**2 + fft_from_file.imag**2)[:n2//2 + 1] / (n2 / 2)
+    freqs2 = np.fft.rfftfreq(n2, d=1.0/sr2)
+    plt.bar(freqs2, amplitudes2, width=freqs2[1] - freqs2[0])
+    plt.title("Wyliczone Spektrum")
+    plt.xlabel("Częstotliwość [Hz]")
+    plt.ylabel("Amplituda")
+    
     plt.tight_layout()
     plt.savefig("plot.png");
+    
 
 
 if __name__ == '__main__':
