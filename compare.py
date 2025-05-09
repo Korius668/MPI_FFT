@@ -23,7 +23,7 @@ def reconstruct_time_signal(freqs, amps, phases, num_points, sampling_rate):
         signal += a * np.cos(2 * np.pi * f * t + p)
     return t, signal
 
-def main(file2, file2):
+def main(file1, file2):
 
     n1, sr1, freqs, amps, phases = load_freq_amp_phase(file1)
     time, signal = reconstruct_time_signal(freqs, amps, phases, n1, sr1)
