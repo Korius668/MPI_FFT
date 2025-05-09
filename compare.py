@@ -55,11 +55,8 @@ def main(file1, file2):
     plt.ylabel("Amplituda")
     
     plt.subplot(2, 2, 3)
-    amplitudes2 = np.sqrt(fft_from_file.real**2 + fft_from_file.imag**2)
-    freqs2 = np.fft.rfftfreq(num_points, d=1.0/sr2)
-    #fft_mag = np.abs(fft_from_file)
-    #fft_freqs_file = np.fft.fftfreq(n2, d=1/sr2)
-    #plt.plot(fft_freqs_file[:n2//2], fft_mag[:n2//2])
+    amplitudes2 = np.sqrt(fft_from_file.real**2 + fft_from_file.imag**2)[:n2//2 + 1]
+    freqs2 = np.fft.rfftfreq(n2, d=1.0/sr2)
     plt.bar(freqs2, amplitudes2, width=freqs2[1] - freqs2[0])
     plt.title("Wyliczone Spektrum FFT")
     plt.xlabel("Częstotliwość [Hz]")
@@ -72,7 +69,7 @@ def main(file1, file2):
     plt.ylabel("Wartość")
     
     plt.tight_layout()
-    plt.show()
+    plt.savefig("plot.png");
 
 
 if __name__ == '__main__':
