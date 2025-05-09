@@ -6,16 +6,16 @@ def load_freq_amp_phase(filename):
     with open(filename) as f:
         header = f.readline()
         num_points, sampling_rate = map(float, header.strip().split())
-        data = np.loadtxt(f)
-    freqs, amps, phases = data[:, 0], data[:, 1], data[:, 2]
-    return int(num_points), sampling_rate, freqs, amps, phases
+        data = [tuple(map(float, line.split())) for line in f]
+    return int(num_points), sampling_rate, data
 
 def load_fft_data(filename):
     with open(filename) as f:
         header = f.readline()
         num_points, sampling_rate = map(float, header.strip().split())
-        data = [tuple(map(float, line.split())) for line in f]
-    return int(num_points), sampling_rate, data
+        data = np.loadtxt(f)
+    real, imag = data[:, 0], data[:, 1]
+    return int(num_points), sampling_rate, real + 1j * imag
 
 def main(file1, file2):
     from collections import defaultdict
