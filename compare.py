@@ -24,6 +24,7 @@ def main(file1, file2):
     freq_dict = defaultdict(list)
     for freq, amp, phase in data1:
         freq_dict[freq].append((amp, phase))
+    n = n1
 
     freqs1 = np.fft.rfftfreq(n1, d=1.0/sr1)
     fft_bins = np.zeros_like(freqs1, dtype=complex)
