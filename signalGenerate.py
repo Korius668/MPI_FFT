@@ -38,7 +38,7 @@ def generate(n, filename):
     phases = np.random.rand(n) *  np.pi
     amplitudes = np.random.rand(n) * 10
     with open(filename + "_expected", "w") as file:
-        file.write(f"${n} ${n}\n")
+        file.write(f"{n} {n}\n")
         file.write('\n'.join(map(lambda x: str(x[0]) + ' ' + str(x[1]) + ' ' + str(x[2]), zip(freqs, amplitudes, phases)) ))
     wave = sum(generate_sine_wave(freq, n, 1.0, amp, phase) for freq, amp, phase in zip(freqs, amplitudes, phases))
     save_signal_to_file(filename, n, wave)
