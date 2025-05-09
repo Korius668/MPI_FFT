@@ -17,6 +17,13 @@ def load_fft_data(filename):
     real, imag = data[:, 0], data[:, 1]
     return int(num_points), sampling_rate, real + 1j * imag
 
+def get_time_signal(n, sr, data):
+    t = n / sr
+    ts = np.linspace(0, t, n, endpoint=False)
+    def generate_sine_wave(freq, amplitude, phase):
+        return amplitude * np.sin(2 * np.pi * freq * ts + phase)
+    return sum(generate_sine_wave(f, a, p) for f, a, p in data), ts
+
 def main(file1, file2):
     from collections import defaultdict
 
@@ -36,11 +43,12 @@ def main(file1, file2):
             complex_sum = sum(amp * np.exp(1j * phase) for amp, phase in vals)
             fft_bins[idx] = complex_sum
     
-    time_signal = np.fft.irfft(fft_bins, n=n1)
-    time_axis = np.arange(n1) / sr1
+    #time_signal = np.fft.irfft(fft_bins, n=n1)
+    #time_axis = np.arange(n1) / sr1
+    time_signal, time_axis = get_time_signal(n1, sr1, data1)
 
     n2, sr2, fft_from_file = load_fft_data(file2)
-    fft_from_file[n//2 + 1:] = fft_from_file[n//2 + 1:][::-1]
+    #fft_from_file[n//2 + 1:] = fft_from_file[n//2 + 1:][::-1]
     reconstructed_signal = np.fft.ifft(fft_from_file).real
     t2 = np.linspace(0, n2 / sr2, n2, endpoint=False)
     
