@@ -4,12 +4,12 @@ EXEC = fft_mpi_exec
 EXEC_MPE = fft_mpe
 SOURCE = fft.c
 SOURCE_MPE = fft_mpe.c
-INPUT = sygnal
+INPUT = example
 NUM_PROCESSES = 8 
 NODES_SCRIPT = /opt/nfs/config/station204_name_list.sh
 NODES_FILE = nodes
 OUTPUT = fft_output
-OUTPUT_PNG = fft_spectrum.png
+OUTPUT_PNG = plot.png
 PYTHON_SCRIPT = fft_plot.py
 PYTHON = python3
 SHELL := /bin/bash
@@ -39,7 +39,7 @@ plot: run $(OUTPUT) $(INPUT)
 	$(PYTHON) $(PYTHON_SCRIPT) $(OUTPUT) $(INPUT)
 
 clean:
-	rm -f $(EXEC) $(EXEC_MPE) *.o $(NODES_FILE) $(OUTPUT) $(OUTPUT_PNG) *.clog2 *.slog2
+	rm -f $(EXEC) $(EXEC_MPE) *.o $(NODES_FILE) $(OUTPUT) $(OUTPUT_PNG) *.clog2 *.slog2 generated_*
 
 convert:
 	/opt/nfs/mpe2-2.4.9b/bin/clog2TOslog2 mpe_log.clog2

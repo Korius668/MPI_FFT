@@ -7,7 +7,7 @@ def load_freq_amp_phase(filename):
         header = f.readline()
         num_points, sampling_rate = map(float, header.strip().split())
         data = [tuple(map(float, line.split())) for line in f]
-    return int(num_points), sampling_rate, data
+    return int(num_points), sampling_rate, data[:3]
 
 def load_fft_data(filename):
     with open(filename) as f:
