@@ -26,7 +26,7 @@ def main(file1, file2):
         freq_dict[freq].append((amp, phase))
 
     freqs1 = np.fft.rfftfreq(n1, d=1.0/sr1)
-    fft_bins = np.zeros_like(freqs2, dtype=complex)
+    fft_bins = np.zeros_like(freqs1, dtype=complex)
     freq_to_index = {round(f, 8): i for i, f in enumerate(freqs1)}
     for freq, vals in freq_dict.items():
         freq_rounded = round(freq, 8)
@@ -60,7 +60,7 @@ def main(file1, file2):
     plt.subplot(2, 2, 3)
     amplitudes2 = np.sqrt(fft_from_file.real**2 + fft_from_file.imag**2)[:n2//2 + 1]
     freqs2 = np.fft.rfftfreq(n2, d=1.0/sr2)
-    plt.bar(freqs2, amplitudes2, width=freqs2[1] - freqs2[0])
+    plt.bar(freqs2 / (n / 2), amplitudes2, width=freqs2[1] - freqs2[0])
     plt.title("Wyliczone Spektrum FFT")
     plt.xlabel("Częstotliwość [Hz]")
     plt.ylabel("Amplituda")
