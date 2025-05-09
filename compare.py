@@ -14,28 +14,30 @@ def load_fft_data(filename):
     with open(filename) as f:
         header = f.readline()
         num_points, sampling_rate = map(float, header.strip().split())
-        data = np.loadtxt(f)
-    real, imag = data[:, 0], data[:, 1]
-    return int(num_points), sampling_rate, real + 1j * imag
-
-def reconstruct_time_signal(freqs, amps, phases, num_points, sampling_rate):
-    t = np.linspace(0, num_points / sampling_rate, num_points, endpoint=False)
-    signal = np.zeros_like(t, dtype=np.complex128)
-    for f, a, p in zip(freqs, amps, phases):
-        # Construct complex exponential: A * exp(i*(2πft + φ))
-        signal += 0.5 * a * np.exp(1j * (2 * np.pi * f * t + p))  # positive freq
-        signal += 0.5 * a * np.exp(-1j * (2 * np.pi * f * t + p))  # negative freq (conj pair)
-    return t, signal.real  # take real part
-
+        data = [tuple(map(float, line.split())) for line in f]
+    return int(num_points), sampling_rate, data
 
 def main(file1, file2):
+    from collections import defaultdict
 
-    n1, sr1, freqs, amps, phases = load_freq_amp_phase(file1)
-    time, signal = reconstruct_time_signal(freqs, amps, phases, n1, sr1)
+    n1, sr1, data1 = load_freq_amp_phase(file1)
+    freq_dict = defaultdict(list)
+    for freq, amp, phase in data1:
+        freq_dict[freq].append((amp, phase))
 
-    fft_vals = np.fft.fft(signal)
-    fft_freqs = np.fft.fftfreq(n1, d=1/sr1)
+    freqs1 = np.fft.rfftfreq(n1, d=1.0/sr1)
+    fft_bins = np.zeros_like(freqs2, dtype=complex)
+    freq_to_index = {round(f, 8): i for i, f in enumerate(freqs1)}
+    for freq, vals in freq_dict.items():
+        freq_rounded = round(freq, 8)
+        if freq_rounded in freq_to_index:
+            idx = freq_to_index[freq_rounded]
+            complex_sum = sum(amp * np.exp(1j * phase) for amp, phase in vals)
+            fft_bins[idx] = complex_sum
     
+    time_signal = np.fft.irfft(fft_bins, n=n1)
+    time_axis = np.arange(n1) / sr1
+
     n2, sr2, fft_from_file = load_fft_data(file2)
     reconstructed_signal = np.fft.ifft(fft_from_file).real
     t2 = np.linspace(0, n2 / sr2, n2, endpoint=False)
@@ -43,13 +45,14 @@ def main(file1, file2):
     plt.figure(figsize=(12, 8))
     
     plt.subplot(2, 2, 1)
-    plt.plot(time, signal)
+    plt.plot(time_axis, time_signal)
     plt.title("Oryginalny sygnał")
     plt.xlabel("Czas [s]")
     plt.ylabel("Wartość")
     
     plt.subplot(2, 2, 2)
-    plt.bar(freqs, amps, width=freqs[1] - freqs[0])
+    magnitudes = np.abs(fft_bins)
+    plt.bar(freqs1, magnitudes, width=freqs1[1] - freqs1[0])
     plt.title("Oryginalne Spektrum FFT")
     plt.xlabel("Częstotliwość [Hz]")
     plt.ylabel("Amplituda")
