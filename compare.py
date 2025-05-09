@@ -58,9 +58,9 @@ def main(file1, file2):
     plt.ylabel("Amplituda")
     
     plt.subplot(2, 2, 3)
-    amplitudes2 = np.sqrt(fft_from_file.real**2 + fft_from_file.imag**2)[:n2//2 + 1]
+    amplitudes2 = np.sqrt(fft_from_file.real**2 + fft_from_file.imag**2)[:n2//2 + 1] / (n2 / 2)
     freqs2 = np.fft.rfftfreq(n2, d=1.0/sr2)
-    plt.bar(freqs2 / (n / 2), amplitudes2, width=freqs2[1] - freqs2[0])
+    plt.bar(freqs2, amplitudes2, width=freqs2[1] - freqs2[0])
     plt.title("Wyliczone Spektrum FFT")
     plt.xlabel("Częstotliwość [Hz]")
     plt.ylabel("Amplituda")
