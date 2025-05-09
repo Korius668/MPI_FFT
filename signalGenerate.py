@@ -14,7 +14,7 @@ def save_signal_to_file(filename, sample_rate, signal):
 def generate(n, filename):
     m = n // 2
     freqs = np.random.randint(1, m, size=n)
-    phases = np.random.rand(n) *  np.pi
+    phases = np.random.rand(n) *  np.pi * 2
     amplitudes = np.random.rand(n) * 10
     wave = sum(generate_sine_wave(freq, n, 1.0, amp, phase) for freq, amp, phase in zip(freqs, amplitudes, phases))
     fft_res = np.fft.fft(wave)
