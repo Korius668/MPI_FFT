@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h> // Dla obsługi liczb zespolonych (double complex)
-#include <mpi.h>     // Dla OpenMPI
+#include <mpi.h>     // Dla MPICH
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -314,9 +314,9 @@ int main(int argc, char *argv[]) {
                  fprintf(outfile, "%.8f %.8f\n", creal(fft_result[i]), cimag(fft_result[i]));
              }
              fclose(outfile);
-             printf("Proces 0: Wynik zapisano do pliku 'fft_output.txt'.\n");
+             printf("Proces 0: Wynik zapisano do pliku 'fft_output'.\n");
         } else {
-            perror("Nie można otworzyć pliku wyjściowego 'fft_output.txt'");
+            perror("Nie można otworzyć pliku wyjściowego 'fft_output'");
         }
 
         free(fft_result); // Zwolnij pamięć wyniku

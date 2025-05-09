@@ -41,7 +41,7 @@ make run INPUT=<nazwa_pliku>
 ```
 Na przykład:
 ```bash
-make run INPUT=example_signals/sinus
+make run INPUT=example1
 ```
 Dla niestandardowej liczby procesów, użyj:
 ```bash
@@ -49,7 +49,7 @@ make run NUM_PROCESSES=<liczba_procesów>
 ```
 Na przykład:
 ```
-make run NUM_PROCESSES=5
+make run NUM_PROCESSES=16
 ```
 ## Czyszczenie
 Aby wyczyścić miejsce robocze (usunąć skompilowane pliki), wykonaj:
