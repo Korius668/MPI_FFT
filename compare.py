@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 
 def load_freq_amp_phase(filename):
     with open(filename) as f:
