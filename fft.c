@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h> // Dla obsługi liczb zespolonych (double complex)
-#include <mpi.h>     // Dla OpenMPI
+#include <mpi.h>     // Dla MPICH
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
