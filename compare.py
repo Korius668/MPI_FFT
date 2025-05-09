@@ -20,10 +20,13 @@ def load_fft_data(filename):
 
 def reconstruct_time_signal(freqs, amps, phases, num_points, sampling_rate):
     t = np.linspace(0, num_points / sampling_rate, num_points, endpoint=False)
-    signal = np.zeros_like(t)
+    signal = np.zeros_like(t, dtype=np.complex128)
     for f, a, p in zip(freqs, amps, phases):
-        signal += a * np.cos(2 * np.pi * f * t + p)
-    return t, signal
+        # Construct complex exponential: A * exp(i*(2πft + φ))
+        signal += 0.5 * a * np.exp(1j * (2 * np.pi * f * t + p))  # positive freq
+        signal += 0.5 * a * np.exp(-1j * (2 * np.pi * f * t + p))  # negative freq (conj pair)
+    return t, signal.real  # take real part
+
 
 def main(file1, file2):
 
@@ -46,15 +49,18 @@ def main(file1, file2):
     plt.ylabel("Wartość")
     
     plt.subplot(2, 2, 2)
-    plt.plot(fft_freqs[:n1//2], np.abs(fft_vals[:n1//2]))
+    plt.bar(freqs, amps, width=freqs[1] - freqs[0])
     plt.title("Oryginalne Spektrum FFT")
     plt.xlabel("Częstotliwość [Hz]")
     plt.ylabel("Amplituda")
     
     plt.subplot(2, 2, 3)
-    fft_mag = np.abs(fft_from_file)
-    fft_freqs_file = np.fft.fftfreq(n2, d=1/sr2)
-    plt.plot(fft_freqs_file[:n2//2], fft_mag[:n2//2])
+    amplitudes2 = np.sqrt(fft_from_file.real**2 + fft_from_file.imag**2)
+    freqs2 = np.fft.rfftfreq(num_points, d=1.0/sr2)
+    #fft_mag = np.abs(fft_from_file)
+    #fft_freqs_file = np.fft.fftfreq(n2, d=1/sr2)
+    #plt.plot(fft_freqs_file[:n2//2], fft_mag[:n2//2])
+    plt.bar(freqs2, amplitudes2, width=freqs2[1] - freqs2[0])
     plt.title("Wyliczone Spektrum FFT")
     plt.xlabel("Częstotliwość [Hz]")
     plt.ylabel("Amplituda")
