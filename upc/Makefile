@@ -97,7 +97,7 @@ clean:
 
 # Reset workspace (remove generated files too)
 reset: clean
-	rm -f example* fft_output plot.png $(NODEFILE)
+	rm -f plot.png $(NODEFILE) fft_output generate_*
 
 # Help
 help:
