@@ -47,7 +47,9 @@ complex_t make_complex(double real, double imag) {
 
 shared int N;
 shared int Fs;
-shared [] complex_t *shared_signal;
+// Main FFT array and a dummy one used for alternating read/write operations
+shared [BLOCKSIZE] complex_t *shared_signal;
+shared [BLOCKSIZE] complex_t *tmp_ptr;
 
 int is_power_of_two(int n) {
     return (n > 0) && ((n & (n - 1)) == 0);
@@ -74,49 +76,53 @@ void swap(complex_t *a, complex_t *b) {
     complex_t tmp = *a; *a = *b; *b = tmp;
 }
 
-void bit_reverse_permutation(complex_t *x, int N) {
-    int bits = 0;
-    while ((1 << bits) < N) bits++;
-    for (int i = 0; i < N; i++) {
-        int rev = 0, tmp = i;
-        for (int j = 0; j < bits; j++) {
-            rev = (rev << 1) | (tmp & 1);
-            tmp >>= 1;
-        }
-        if (rev > i) swap(&x[i], &x[rev]);
-    }
-}
-
-void fft_compute_stages_upc(int N, int local_N) {
+void fft_compute_stages_upc(int N, shared [BLOCKSIZE] complex_t *x, shared [BLOCKSIZE] complex_t *tmp) {
     int stages = 0;
     while ((1 << stages) < N) stages++;
+
+    shared[BLOCKSIZE] complex_t *read_buf = x;
+    shared[BLOCKSIZE] complex_t *write_buf = tmp;
+
     for (int s = 1; s <= stages; s++) {
         int m = 1 << s;
         int m2 = m >> 1;
         complex_t Wm = complex_exp(-2.0 * M_PI / m);
-        for (int k = 0; k < N; k += m) {
+
+        // Nice substitution for checking (MYTHREAD == ...)
+	upc_forall(int k = 0; k < N; k += m; &read_buf[k]) {
             complex_t W = make_complex(1.0, 0.0);
             for (int j = 0; j < m2; j++) {
                 int idx1 = k + j;
                 int idx2 = k + j + m2;
-                if (upc_threadof(&shared_signal[idx1]) == MYTHREAD ||
-                    upc_threadof(&shared_signal[idx2]) == MYTHREAD) {
-                    complex_t u = shared_signal[idx1];
-                    complex_t t = complex_mul(W, shared_signal[idx2]);
-                    if (upc_threadof(&shared_signal[idx1]) == MYTHREAD)
-                        shared_signal[idx1] = complex_add(u, t);
-                    if (upc_threadof(&shared_signal[idx2]) == MYTHREAD)
-                        shared_signal[idx2] = complex_sub(u, t);
-                }
-                W = complex_mul(W, Wm);
+
+		if (idx2 >= N) continue;
+
+                complex_t u = read_buf[idx1];
+                complex_t v = read_buf[idx2];
+                complex_t t = complex_mul(W, v);
+
+                write_buf[idx1] = complex_add(u, t);
+                write_buf[idx2] = complex_sub(u, t);
+
+            	W = complex_mul(W, Wm);
             }
         }
         upc_barrier;
+
+        // Alternating read/write buffers to avoid race conditions
+	shared [BLOCKSIZE] complex_t *p_tmp = read_buf;
+	read_buf = write_buf;
+	write_buf = p_tmp;
+    }
+    if (stages % 2 == 1) {
+        upc_forall(int i = 0; i < N; i++; &x[i]) {
+		x[i] = read_buf[i];
+	}
+	upc_barrier;
     }
 }
 
 int main(int argc, char *argv[]) {
-    int local_N;
     complex_t *signal_full = NULL;
     complex_t *fft_result = NULL;
     struct timeval tv_start, tv_end;
@@ -154,29 +160,45 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
         N = padded_N;
-        bit_reverse_permutation(signal_full, N);
         fft_result = malloc(N * sizeof(complex_t));
     }
 
     upc_barrier;
-    local_N = N / THREADS;
 
-    shared_signal = (shared [] complex_t *) upc_alloc(N * sizeof(complex_t));
-    if (shared_signal == NULL) {
-        fprintf(stderr, "Thread %d: shared_signal allocation failed\n", MYTHREAD);
-        upc_global_exit(1);
-    }
+    tmp_ptr = (shared [BLOCKSIZE] complex_t *) upc_all_alloc(1, N * sizeof(complex_t));
+    shared_signal = (shared [BLOCKSIZE] complex_t *) upc_all_alloc(1, N * sizeof(complex_t));
 
     if (MYTHREAD == 0) {
-        for (int i = 0; i < N; i++) shared_signal[i] = signal_full[i];
+	    if (tmp_ptr == NULL || shared_signal == NULL) {
+	        fprintf(stderr, "Thread %d: shared_signal allocation failed\n", MYTHREAD);
+	        upc_global_exit(1);
+	    }
+    }
+
+    upc_barrier;
+
+    // Bit-Reverse Permutation
+    if (MYTHREAD == 0) {
+	int bits = 0;
+	while ((1 << bits) < N) bits++;
+	for (int i = 0; i < N; i++) {
+		int rev = 0, tmp = i;
+		for (int j = 0; j < bits; j++) {
+			rev = (rev << 1) | (tmp & 1);
+			tmp >>= 1;
+		}
+		shared_signal[rev] = signal_full[i];
+	}
         free(signal_full);
     }
     upc_barrier;
 
+    // FFT Execution
     if (MYTHREAD == 0) gettimeofday(&tv_start, NULL);
-    fft_compute_stages_upc(N, local_N);
+    fft_compute_stages_upc(N, shared_signal, tmp_ptr);
     if (MYTHREAD == 0) gettimeofday(&tv_end, NULL);
 
+    upc_barrier;
     if (MYTHREAD == 0) {
         for (int i = 0; i < N; i++) fft_result[i] = shared_signal[i];
         start_time = tv_start.tv_sec + tv_start.tv_usec / 1e6;
@@ -191,6 +213,7 @@ int main(int argc, char *argv[]) {
         free(fft_result);
     }
 
-    upc_free(shared_signal);
+    upc_all_free(shared_signal);
+    upc_all_free(tmp_ptr);
     return 0;
 }
