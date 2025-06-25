@@ -1,10 +1,10 @@
-# UPC FFT Makefile for Lab 204 Environment
+# UPC FFT Makefile
 
 # Default values
 PTHREADS ?= 4
 NODES ?= 4
 THREADS = $(shell echo $$(($(PTHREADS) * $(NODES))))
-INPUT ?= example1
+INPUT ?= example
 SHARED_HEAP ?= 256M
 
 # Executable names
@@ -66,11 +66,10 @@ run-gupc: $(TARGET_GUPC) $(NODEFILE)
 
 # Generate example data
 generate:
-	python3 sygnalGenerate.py
+	python3 signalGenerate.py $(INPUT)
 
 plot:
 	python3 fft_plot.py fft_output $(INPUT)
-
 
 # Test with different configurations
 test-small: $(TARGET_BUPC) $(NODEFILE)
@@ -102,7 +101,7 @@ reset: clean
 
 # Help
 help:
-	@echo "UPC FFT Makefile for Lab 204 Environment"
+	@echo "UPC FFT Makefile"
 	@echo ""
 	@echo "Setup Commands:"
 	@echo "  setup            - Show environment setup instructions"
@@ -112,12 +111,10 @@ help:
 	@echo "Compilation:"
 	@echo "  compile-bupc     - Compile with Berkeley UPC (default)"
 	@echo "  compile-gupc     - Compile with GNU UPC"
-	@echo "  compile-debug    - Compile debug version"
 	@echo ""
 	@echo "Execution:"
 	@echo "  run              - Run with default parameters (Berkeley UPC)"
 	@echo "  run-gupc         - Run with GNU UPC"
-	@echo "  run-debug        - Run debug version"
 	@echo "  run NODES=n      - Run with n nodes"
 	@echo "  run PTHREADS=n   - Run with n threads per process"
 	@echo "  run INPUT=file   - Run with custom input file"
@@ -140,4 +137,27 @@ help:
 	@echo "  INPUT=$(INPUT)      - Input file"
 	@echo "  SHARED_HEAP=$(SHARED_HEAP)  - Shared heap size"
 
-.PHONY: all setup nodes compile-bupc compile-gupc compile-debug run run-gupc run-debug generate compare test-small test-medium test-large check-env clean reset help
+# Test FFT with pure sine wave
+test-sine: compile-bupc $(NODEFILE)
+	python3 test_fft.py 50 1024
+	UPC_NODEFILE=$(NODEFILE) upcrun -shared-heap $(SHARED_HEAP) -c $(PTHREADS) -N $(NODES) -n $(THREADS) ./$(TARGET_BUPC) test_signal.txt
+	python3 test_fft.py 50 1024 analyze
+
+# Compile fixed version
+compile-fixed: fft_upc_fixed
+
+fft_upc_fixed: fft_upc_fixed.c
+	upcc -bupc -network=udp -pthreads=$(PTHREADS) fft_upc_fixed.c -o fft_upc_fixed -lm
+
+# Run fixed version
+run-fixed: fft_upc_fixed $(NODEFILE)
+	@echo "Running FIXED version with $(THREADS) threads"
+	UPC_NODEFILE=$(NODEFILE) upcrun -shared-heap $(SHARED_HEAP) -c $(PTHREADS) -N $(NODES) -n $(THREADS) ./fft_upc_fixed $(INPUT)
+
+# Test fixed version with sine wave
+test-fixed: compile-fixed $(NODEFILE)
+	python3 test_fft.py 50 1024
+	UPC_NODEFILE=$(NODEFILE) upcrun -shared-heap $(SHARED_HEAP) -c $(PTHREADS) -N $(NODES) -n $(THREADS) ./fft_upc_fixed test_signal.txt
+	python3 test_fft.py 50 1024 analyze
+
+.PHONY: all setup nodes compile-bupc compile-gupc run run-gupc generate compare test-small test-medium test-large check-env clean reset help
